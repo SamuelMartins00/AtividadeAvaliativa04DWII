@@ -1,0 +1,30 @@
+{
+  "name": "treinos_espotivos_dwii_04",
+  "version": "1.0.0",
+  "description": "atividade avaliativa 04 da materia desenvolvimento web 2",
+  "homepage": "https://github.com/SamuelMartins00/AtividadeAvaliativa04DWII#readme",
+  "bugs": {
+    "url": "https://github.com/SamuelMartins00/AtividadeAvaliativa04DWII/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SamuelMartins00/AtividadeAvaliativa04DWII.git"
+  },
+  "license": "ISC",
+  "author": "Samuel Martins",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0",
+    "mysql2": "^3.24.6",
+    "sequelize": "^6.37.8"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "sequelize-cli": "^6.6.5"
+  }
+}
