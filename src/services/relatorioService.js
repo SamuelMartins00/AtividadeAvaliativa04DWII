@@ -225,7 +225,7 @@ class RelatorioService {
 
             estatisticasPorTipo,
 
-            estatisticasPorPosicao
+            estatisticasPorPosicao: resultadoPorPosicao
         };
     }
 }
