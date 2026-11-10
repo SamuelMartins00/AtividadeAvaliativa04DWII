@@ -1,12 +1,14 @@
 
 const { Op, fn, col } = require('sequelize');
-const { Treino, Jogador, Configuracao } = require('../models');
+const { Treino, Jogador } = require('../models');
+const configuracaoService = require('./configuracaoService');
+const { isValidDateOnly } = require('../utils/date');
 
 class RelatorioService {
 
     // Descobre a segunda e o domingo da semana informada
     obterPeriodoSemanal(data) {
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(data || '')) {
+        if (!isValidDateOnly(data)) {
             const error = new Error('Informe uma data válida no formato AAAA-MM-DD.');
             error.statusCode = 400;
             throw error;
@@ -14,12 +16,6 @@ class RelatorioService {
 
         const [ano, mes, dia] = data.split('-').map(Number);
         const dataInformada = new Date(Date.UTC(ano, mes - 1, dia));
-
-        if (dataInformada.toISOString().slice(0, 10) !== data) {
-            const error = new Error('A data informada não existe.');
-            error.statusCode = 400;
-            throw error;
-        }
 
         // getUTCDay(): domingo = 0, segunda = 1, ..., sábado = 6
         const diaDaSemana = dataInformada.getUTCDay();
@@ -43,15 +39,9 @@ class RelatorioService {
     async gerar(data) {
         const { inicio, fim } = this.obterPeriodoSemanal(data);
 
-        const configuracao = await Configuracao.findOne({
-            order: [['id', 'DESC']]
-        });
-
-        if (!configuracao) {
-            const error = new Error('Cadastre a configuração da carga máxima semanal antes de gerar o relatório.');
-            error.statusCode = 404;
-            throw error;
-        }
+        // A carga limite é definida pela configuração vigente na data informada
+        // para localizar a semana do relatório.
+        const configuracao = await configuracaoService.buscar(data);
 
         const limiteSemanal = Number(configuracao.cargaMaximaSemanal);
 
@@ -165,32 +155,30 @@ class RelatorioService {
             quantidadeTreinos: Number(item.quantidadeTreinos)
         }));
 
-        // Agregar carga e quantidade de treinos por posição
-        const estatisticasPorPosicao = {};
-
-        for (const jogador of desempenhoPorJogador) {
-            if (!estatisticasPorPosicao[jogador.posicao]) {
-                estatisticasPorPosicao[jogador.posicao] = {
-                    posicao: jogador.posicao,
-                    quantidadeJogadores: 0,
-                    quantidadeTreinos: 0,
-                    cargaTotal: 0
-                };
-            }
-
-            const estatistica = estatisticasPorPosicao[jogador.posicao];
-
-            estatistica.quantidadeJogadores++;
-            estatistica.quantidadeTreinos += jogador.quantidadeTreinos;
-            estatistica.cargaTotal += jogador.cargaTotal;
-        }
-
-        const resultadoPorPosicao = Object.values(
-            estatisticasPorPosicao
-        ).map(item => ({
-            ...item,
-            cargaTotal: Number(item.cargaTotal.toFixed(2))
-        }));
+        // Agregação por posição executada diretamente no MySQL com GROUP BY.
+        const estatisticasPorPosicao = await Treino.findAll({
+            attributes: [
+                [col('jogador.posicao'), 'posicao'],
+                [fn('COUNT', fn('DISTINCT', col('Treino.jogadorId'))), 'quantidadeJogadores'],
+                [fn('COUNT', col('Treino.id')), 'quantidadeTreinos'],
+                [fn('SUM', col('Treino.carga')), 'cargaTotal']
+            ],
+            include: [{
+                model: Jogador,
+                as: 'jogador',
+                attributes: [],
+                required: true
+            }],
+            where,
+            group: [col('jogador.posicao')],
+            order: [[col('jogador.posicao'), 'ASC']],
+            raw: true
+        }).then(registros => registros.map(item => ({
+            posicao: item.posicao,
+            quantidadeJogadores: Number(item.quantidadeJogadores),
+            quantidadeTreinos: Number(item.quantidadeTreinos),
+            cargaTotal: Number(Number(item.cargaTotal).toFixed(2))
+        })));
 
         return {
             periodo: {
@@ -225,7 +213,7 @@ class RelatorioService {
 
             estatisticasPorTipo,
 
-            estatisticasPorPosicao: resultadoPorPosicao
+            estatisticasPorPosicao
         };
     }
 }

@@ -31,16 +31,6 @@ app.use('/configuracao', configuracaoRoutes);
 app.use('/relatorios', relatorioRoutes);
 
 // Tratamento centralizado de erros
-app.use((error, req, res, next) => {
-    console.error(error);
-
-    const statusCode = error.statusCode || 500;
-
-    return res.status(statusCode).json({
-        mensagem: error.message || 'Erro interno do servidor.'
-    });
-});
-
 app.use(errorHandler);
 
 module.exports = app;

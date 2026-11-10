@@ -17,7 +17,7 @@ module.exports = {
             },
 
             dataVigencia: {
-                type: Sequelize.DATE,
+                type: Sequelize.DATEONLY,
                 allowNull: true
             },
 

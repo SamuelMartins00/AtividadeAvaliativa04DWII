@@ -1,5 +1,6 @@
 
 const { Treino, Jogador } = require('../models');
+const { isValidDateOnly } = require('../utils/date');
 
 class TreinoService {
 
@@ -49,6 +50,27 @@ class TreinoService {
             throw error;
         }
 
+        const codigoNormalizado = typeof codigo === 'string' ? codigo.trim() : '';
+        if (!codigoNormalizado) {
+            const error = new Error('O código do treino não pode ficar vazio.');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        // Validar o identificador do jogador
+        if (!Number.isInteger(Number(jogadorId)) || Number(jogadorId) <= 0) {
+            const error = new Error('O jogadorId deve ser um número inteiro positivo.');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        // Validar formato e existência da data civil
+        if (!isValidDateOnly(dataTreino)) {
+            const error = new Error('A data do treino deve existir e estar no formato AAAA-MM-DD.');
+            error.statusCode = 400;
+            throw error;
+        }
+
         // Validar duração
         if (!Number.isInteger(Number(duracaoMin)) || Number(duracaoMin) <= 0) {
             const error = new Error('A duração deve ser um número inteiro positivo.');
@@ -92,7 +114,7 @@ class TreinoService {
 
         // Criar treino
         const treino = await Treino.create({
-            codigo,
+            codigo: codigoNormalizado,
             jogadorId,
             dataTreino,
             tipo,

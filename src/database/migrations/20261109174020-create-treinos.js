@@ -29,7 +29,7 @@ module.exports = {
             },
 
             dataTreino: {
-                type: Sequelize.DATE,
+                type: Sequelize.DATEONLY,
                 allowNull: false
             },
 

@@ -52,8 +52,22 @@ class JogadorService {
             throw error;
         }
 
+        if (nome !== undefined && (
+            typeof nome !== 'string' || nome.trim().length < 2 || nome.trim().length > 100
+        )) {
+            const error = new Error('O nome deve ter entre 2 e 100 caracteres.');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        if (posicao !== undefined && !['G', 'Z', 'M', 'A'].includes(posicao)) {
+            const error = new Error('Posição inválida. Use G, Z, M ou A.');
+            error.statusCode = 400;
+            throw error;
+        }
+
         await jogador.update({
-            ...(nome !== undefined && { nome }),
+            ...(nome !== undefined && { nome: nome.trim() }),
             ...(posicao !== undefined && { posicao })
         });
 

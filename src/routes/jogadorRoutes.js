@@ -73,8 +73,8 @@ router.get('/:id', jogadorController.buscarPorId);
 /**
  * @swagger
  * /jogadores/{id}:
- *   put:
- *     summary: Atualizar dados de um jogador
+ *   patch:
+ *     summary: Atualizar parcialmente os dados de um jogador
  *     tags: [Jogadores]
  *     parameters:
  *       - in: path
@@ -104,7 +104,7 @@ router.get('/:id', jogadorController.buscarPorId);
  *       404:
  *         description: Jogador não encontrado
  */
-router.put('/:id', jogadorController.atualizar);
+router.patch('/:id', jogadorController.atualizar);
 
 /**
  * @swagger

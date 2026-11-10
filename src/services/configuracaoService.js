@@ -1,16 +1,30 @@
-
+const { Op } = require('sequelize');
 const { Configuracao } = require('../models');
+const { isValidDateOnly, todayDateOnly } = require('../utils/date');
 
 class ConfiguracaoService {
 
-    // Consultar a configuração mais recente
-    async buscar() {
+    // Retorna a configuração vigente na data de referência.
+    // Registros sem dataVigencia são tratados como configuração-base histórica.
+    async buscar(dataReferencia = todayDateOnly()) {
+        if (!isValidDateOnly(dataReferencia)) {
+            const error = new Error('A data de referência deve estar no formato AAAA-MM-DD e existir.');
+            error.statusCode = 400;
+            throw error;
+        }
+
         const configuracao = await Configuracao.findOne({
-            order: [['id', 'DESC']]
+            where: {
+                [Op.or]: [
+                    { dataVigencia: null },
+                    { dataVigencia: { [Op.lte]: dataReferencia } }
+                ]
+            },
+            order: [['dataVigencia', 'DESC'], ['id', 'DESC']]
         });
 
         if (!configuracao) {
-            const error = new Error('Nenhuma configuração cadastrada.');
+            const error = new Error('Nenhuma configuração vigente para a data informada.');
             error.statusCode = 404;
             throw error;
         }
@@ -18,7 +32,7 @@ class ConfiguracaoService {
         return configuracao;
     }
 
-    // Criar ou atualizar a configuração
+    // Cada gravação cria uma nova versão para preservar o histórico de vigência.
     async salvar(dados) {
         const { cargaMaximaSemanal, dataVigencia } = dados;
 
@@ -40,22 +54,16 @@ class ConfiguracaoService {
             throw error;
         }
 
-        const configuracaoAtual = await Configuracao.findOne({
-            order: [['id', 'DESC']]
-        });
-
-        if (configuracaoAtual) {
-            await configuracaoAtual.update({
-                cargaMaximaSemanal: carga,
-                ...(dataVigencia !== undefined && { dataVigencia })
-            });
-
-            return configuracaoAtual;
+        const vigencia = dataVigencia === undefined ? todayDateOnly() : dataVigencia;
+        if (vigencia !== null && !isValidDateOnly(vigencia)) {
+            const error = new Error('A data de vigência deve existir e estar no formato AAAA-MM-DD.');
+            error.statusCode = 400;
+            throw error;
         }
 
         return await Configuracao.create({
             cargaMaximaSemanal: carga,
-            dataVigencia: dataVigencia ?? null
+            dataVigencia: vigencia
         });
     }
 }

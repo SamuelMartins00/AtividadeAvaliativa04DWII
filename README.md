@@ -74,7 +74,7 @@ Substitua `sua_senha` pela senha do seu MySQL.
 │   │   │   └── 20261109174029-create-configuracoes.js
 │   │   └── seeders
 │   │       └── 20261110113651-dados-iniciais.js
-│   ├── middleswares
+│   ├── middlewares
 │   │   └── errorHandler.js
 │   ├── models
 │   │   ├── Configuracao.js
@@ -86,6 +86,8 @@ Substitua `sua_senha` pela senha do seu MySQL.
 │   │   ├── jogadorRoutes.js
 │   │   ├── relatorioRoutes.js
 │   │   └── treinoRoutes.js
+│   ├── utils
+│   │   └── date.js
 │   ├── services
 │   │   ├── configuracaoService.js
 │   │   ├── jogadorService.js
@@ -140,6 +142,12 @@ A API ficará disponível em:
 http://localhost:3000
 ```
 
+A documentação interativa da API (Swagger) ficará disponível em:
+
+```text
+http://localhost:3000/api-docs
+```
+
 ## 9. Endpoints da API
 
 ### Jogadores
@@ -149,7 +157,7 @@ http://localhost:3000
 | POST | `/jogadores` | Cadastrar jogador |
 | GET | `/jogadores` | Listar jogadores |
 | GET | `/jogadores/:id` | Buscar jogador por ID |
-| PUT | `/jogadores/:id` | Atualizar jogador |
+| PATCH | `/jogadores/:id` | Atualizar parcialmente os dados do jogador (nome e/ou posição) |
 | PATCH | `/jogadores/:id/desativar` | Desativar jogador |
 
 ### Treinos
@@ -166,7 +174,7 @@ http://localhost:3000
 | Método | Endpoint | Descrição |
 |---|---|---|
 | GET | `/configuracao` | Consultar configuração |
-| PUT | `/configuracao` | Cadastrar ou atualizar configuração |
+| PUT | `/configuracao` | Cadastrar nova configuração de carga máxima semanal com data de vigência |
 
 ### Relatórios
 
@@ -174,7 +182,7 @@ http://localhost:3000
 |---|---|---|
 | GET | `/relatorios/semanal?data=AAAA-MM-DD` | Gerar relatório semanal |
 
-A data informada no relatório identifica a semana correspondente, considerando o período de segunda-feira a domingo.
+A data informada no relatório identifica a semana correspondente, considerando o período de segunda-feira a domingo. A carga máxima aplicada é a que estava vigente na data informada na consulta do relatório.
 
 ## 10. Regras de negócio
 
@@ -186,7 +194,9 @@ A data informada no relatório identifica a semana correspondente, considerando 
 
 ### Treinos
 
-- O código do treino deve ser único.
+- O código do treino deve ser único e é armazenado sem espaços no início ou no fim.
+- A data do treino deve existir e seguir o formato `AAAA-MM-DD`.
+- O `jogadorId` deve ser um número inteiro positivo.
 - A duração deve ser um número inteiro positivo.
 - A intensidade deve estar entre 1 e 10.
 - Os tipos permitidos são F (Físico), T (Técnico) e E (Estratégico).
@@ -209,6 +219,13 @@ A carga do treino é calculada pela fórmula:
 O risco é identificado quando a soma das cargas dos treinos de um jogador durante a semana ultrapassa a carga máxima semanal configurada.
 
 A comparação é estrita: uma carga igual ao limite não representa risco.
+
+### Vigência da configuração semanal
+
+- Cada atualização da carga máxima cria um novo registro, preservando o histórico.
+- A configuração informada em `dataVigencia` passa a valer a partir dessa data.
+- Para o relatório, é utilizada a configuração mais recente cuja vigência seja menor ou igual à data informada na consulta que identifica a semana.
+- Quando `dataVigencia` é omitida, a data atual é utilizada. Um registro com `dataVigencia: null` pode ser mantido como configuração-base sem data de início.
 
 ## 11. Relatório semanal
 
