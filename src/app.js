@@ -5,6 +5,7 @@ const app = express();
 const jogadorRoutes = require('./routes/jogadorRoutes');
 const treinoRoutes = require('./routes/treinoRoutes');
 const configuracaoRoutes = require('./routes/configuracaoRoutes');
+const relatorioRoutes = require('./routes/relatorioRoutes');
 
 app.use(express.json());
 
@@ -32,5 +33,7 @@ app.use((error, req, res, next) => {
 app.use('/treinos', treinoRoutes);
 
 app.use('/configuracao', configuracaoRoutes);
+
+app.use('/relatorios', relatorioRoutes);
 
 module.exports = app;
