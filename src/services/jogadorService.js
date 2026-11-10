@@ -1,0 +1,81 @@
+const { Jogador } = require('../models');
+
+class JogadorService {
+
+    // Cadastrar jogador
+    async criar(dados) {
+        const { nome, posicao } = dados;
+
+        if (!nome || !posicao) {
+            const error = new Error('Nome e posição são obrigatórios.');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        const jogador = await Jogador.create({
+            nome,
+            posicao
+        });
+
+        return jogador;
+    }
+
+    // Listar todos os jogadores
+    async listar() {
+        return await Jogador.findAll({
+            order: [['id', 'ASC']]
+        });
+    }
+
+    // Buscar jogador por ID
+    async buscarPorId(id) {
+        const jogador = await Jogador.findByPk(id);
+
+        if (!jogador) {
+            const error = new Error('Jogador não encontrado.');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        return jogador;
+    }
+
+    // Atualizar jogador
+    async atualizar(id, dados) {
+        const jogador = await this.buscarPorId(id);
+
+        const { nome, posicao } = dados;
+
+        if (nome === undefined && posicao === undefined) {
+            const error = new Error('Informe pelo menos um campo para atualizar.');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        await jogador.update({
+            ...(nome !== undefined && { nome }),
+            ...(posicao !== undefined && { posicao })
+        });
+
+        return jogador;
+    }
+
+    // Desativar jogador
+    async desativar(id) {
+        const jogador = await this.buscarPorId(id);
+
+        if (!jogador.ativo) {
+            const error = new Error('O jogador já está desativado.');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        await jogador.update({
+            ativo: false
+        });
+
+        return jogador;
+    }
+}
+
+module.exports = new JogadorService();

@@ -1,16 +1,36 @@
-
 const express = require('express');
 
 const app = express();
 
-// Middleware para interpretar JSON
+const jogadorRoutes = require('./routes/jogadorRoutes');
+const treinoRoutes = require('./routes/treinoRoutes');
+const configuracaoRoutes = require('./routes/configuracaoRoutes');
+
 app.use(express.json());
 
-// Rota inicial para verificar a API
+// Rota inicial
 app.get('/', (req, res) => {
     return res.status(200).json({
-        mensagem: 'API - Treinos Esportivos funcionando!'
+        mensagem: 'API de Treinos Esportivos funcionando!'
     });
 });
+
+// Rotas de jogadores
+app.use('/jogadores', jogadorRoutes);
+
+// Tratamento centralizado de erros
+app.use((error, req, res, next) => {
+    console.error(error);
+
+    const statusCode = error.statusCode || 500;
+
+    return res.status(statusCode).json({
+        mensagem: error.message || 'Erro interno do servidor.'
+    });
+});
+
+app.use('/treinos', treinoRoutes);
+
+app.use('/configuracao', configuracaoRoutes);
 
 module.exports = app;
