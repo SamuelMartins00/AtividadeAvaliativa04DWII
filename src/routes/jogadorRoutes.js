@@ -73,6 +73,32 @@ router.get('/:id', jogadorController.buscarPorId);
 /**
  * @swagger
  * /jogadores/{id}:
+ *   put:
+ *     summary: Atualizar jogador (nome e posição obrigatórios)
+ *     tags: [Jogadores]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: integer }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [nome, posicao]
+ *             properties:
+ *               nome: { type: string, example: Carlos Silva }
+ *               posicao: { type: string, enum: [G, Z, M, A], example: M }
+ *     responses:
+ *       200: { description: Jogador atualizado }
+ *       400: { description: Dados inválidos ou campos ausentes }
+ *       404: { description: Jogador não encontrado }
+ */
+/**
+ * @swagger
+ * /jogadores/{id}:
  *   patch:
  *     summary: Atualizar parcialmente os dados de um jogador
  *     tags: [Jogadores]
@@ -104,6 +130,7 @@ router.get('/:id', jogadorController.buscarPorId);
  *       404:
  *         description: Jogador não encontrado
  */
+router.put('/:id', jogadorController.atualizar);
 router.patch('/:id', jogadorController.atualizar);
 
 /**

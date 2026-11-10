@@ -61,6 +61,15 @@ module.exports = {
         });
 
         await queryInterface.bulkInsert('treinos', treinos);
+
+        // Limite didático de 120 pontos: na semana de 02 a 08/11/2026,
+        // há jogadores acima e abaixo do limite para demonstrar o relatório.
+        await queryInterface.bulkInsert('configuracoes', [{
+            cargaMaximaSemanal: 120.00,
+            dataVigencia: '2026-10-01',
+            createdAt: agora,
+            updatedAt: agora
+        }]);
     },
 
     async down(queryInterface) {
@@ -71,6 +80,11 @@ module.exports = {
 
         await queryInterface.bulkDelete('treinos', {
             codigo: codigos
+        });
+
+        await queryInterface.bulkDelete('configuracoes', {
+            dataVigencia: '2026-10-01',
+            cargaMaximaSemanal: 120.00
         });
 
         await queryInterface.bulkDelete('jogadores', {

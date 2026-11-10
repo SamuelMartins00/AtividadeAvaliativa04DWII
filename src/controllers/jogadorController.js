@@ -42,7 +42,8 @@ class JogadorController {
         try {
             const jogador = await jogadorService.atualizar(
                 req.params.id,
-                req.body
+                req.body,
+                req.method === 'PATCH'
             );
 
             return res.status(200).json({

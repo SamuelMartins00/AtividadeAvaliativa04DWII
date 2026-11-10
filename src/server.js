@@ -16,6 +16,7 @@ async function iniciarServidor() {
         // Inicia o servidor HTTP
         app.listen(PORT, () => {
             console.log(`Servidor rodando na porta ${PORT}`);
+            console.log(`Acesse a documentação swagger localhost:${PORT}/api-docs`);
         });
 
     } catch (error) {

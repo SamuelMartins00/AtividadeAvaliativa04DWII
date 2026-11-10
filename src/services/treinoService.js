@@ -127,13 +127,47 @@ class TreinoService {
     }
 
     // Listar todos os treinos
-    async listar() {
+    async listar(filtros = {}) {
+        const { Op } = require('sequelize');
+        const where = {};
+        const { jogadorId, tipo, dataInicio, dataFim } = filtros;
+
+        if (jogadorId !== undefined) {
+            if (!/^\d+$/.test(String(jogadorId)) || Number(jogadorId) <= 0) {
+                const error = new Error('jogadorId deve ser um inteiro positivo.');
+                error.statusCode = 400;
+                throw error;
+            }
+            where.jogadorId = Number(jogadorId);
+        }
+
+        if (tipo !== undefined) {
+            if (!['F', 'T', 'E'].includes(tipo)) {
+                const error = new Error('Tipo inválido. Use F, T ou E.');
+                error.statusCode = 400;
+                throw error;
+            }
+            where.tipo = tipo;
+        }
+
+        if ((dataInicio && !isValidDateOnly(dataInicio)) || (dataFim && !isValidDateOnly(dataFim))) {
+            const error = new Error('As datas devem existir e seguir o formato AAAA-MM-DD.');
+            error.statusCode = 400;
+            throw error;
+        }
+        if (dataInicio && dataFim && dataInicio > dataFim) {
+            const error = new Error('dataInicio não pode ser posterior a dataFim.');
+            error.statusCode = 400;
+            throw error;
+        }
+        if (dataInicio && dataFim) where.dataTreino = { [Op.between]: [dataInicio, dataFim] };
+        else if (dataInicio) where.dataTreino = { [Op.gte]: dataInicio };
+        else if (dataFim) where.dataTreino = { [Op.lte]: dataFim };
+
         return await Treino.findAll({
-            include: [{
-                model: Jogador,
-                as: 'jogador'
-            }],
-            order: [['dataTreino', 'DESC']]
+            where,
+            include: [{ model: Jogador, as: 'jogador' }],
+            order: [['dataTreino', 'DESC'], ['id', 'DESC']]
         });
     }
 

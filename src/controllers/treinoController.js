@@ -19,7 +19,7 @@ class TreinoController {
 
     async listar(req, res, next) {
         try {
-            const treinos = await treinoService.listar();
+            const treinos = await treinoService.listar(req.query);
 
             return res.status(200).json(treinos);
 

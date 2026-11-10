@@ -120,7 +120,7 @@ Para inserir os dados de demonstração:
 npx sequelize-cli db:seed:all
 ```
 
-Os seeders adicionam jogadores e treinos para facilitar os testes da aplicação.
+O seeder adiciona seis jogadores, vinte treinos e uma configuração inicial de carga máxima semanal de 120 pontos, vigente desde 2026-10-01. Essa configuração permite demonstrar jogadores acima e abaixo do limite na semana de 2026-11-02 a 2026-11-08.
 
 Para desfazer a execução do último seeder:
 
@@ -157,7 +157,8 @@ http://localhost:3000/api-docs
 | POST | `/jogadores` | Cadastrar jogador |
 | GET | `/jogadores` | Listar jogadores |
 | GET | `/jogadores/:id` | Buscar jogador por ID |
-| PATCH | `/jogadores/:id` | Atualizar parcialmente os dados do jogador (nome e/ou posição) |
+| PUT | `/jogadores/:id` | Atualizar jogador (exige nome e posição) |
+| PATCH | `/jogadores/:id` | Atualizar parcialmente (nome e/ou posição) |
 | PATCH | `/jogadores/:id/desativar` | Desativar jogador |
 
 ### Treinos
@@ -165,7 +166,7 @@ http://localhost:3000/api-docs
 | Método | Endpoint | Descrição |
 |---|---|---|
 | POST | `/treinos` | Cadastrar treino |
-| GET | `/treinos` | Listar treinos |
+| GET | `/treinos` | Listar treinos, com filtros opcionais |
 | GET | `/treinos/jogador/:id` | Listar treinos de um jogador |
 | DELETE | `/treinos/:codigo` | Excluir treino pelo código |
 
@@ -239,7 +240,7 @@ O relatório apresenta:
 - Ranking de maior e menor carga, incluindo empates.
 - Jogadores com carga acima do limite semanal.
 - Média de carga e quantidade de treinos por tipo.
-- Estatísticas agrupadas por posição.
+- Estatísticas agrupadas por posição, com quantidade de treinos, carga total e carga média por sessão.
 
 Jogadores sem treinos na semana não aparecem nos rankings. Quando não existem treinos no período, os totais são apresentados como zero e os rankings ficam vazios.
 
@@ -263,3 +264,10 @@ Principais códigos HTTP utilizados:
 - O histórico de treinos é preservado quando um jogador é desativado.
 - A carga dos treinos é calculada pela aplicação, não devendo ser informada manualmente pelo cliente.
 - As consultas dos relatórios consideram semanas completas, de segunda-feira a domingo.
+
+
+## 13. Utilização do Sequelize e async/await
+
+Todas as operações de persistência da aplicação são realizadas pelos models do Sequelize, sem SQL escrito diretamente nos fluxos principais. Os services utilizam métodos como `create`, `findAll`, `findByPk`, `findOne`, `update` e `destroy` (inclusive por instância). Os métodos assíncronos são declarados com `async` e aguardam as consultas com `await`; os controllers encaminham falhas ao middleware centralizado por meio de `next(error)`.
+
+As consultas do relatório utilizam agregações do Sequelize (`sum`, `count`, `fn`, `col` e `group`), além de `include` para relacionar treinos e jogadores e `Op.between` para delimitar a semana. Os filtros de treinos também usam `where` e operadores Sequelize (`Op.between`, `Op.gte` e `Op.lte`).

@@ -161,7 +161,8 @@ class RelatorioService {
                 [col('jogador.posicao'), 'posicao'],
                 [fn('COUNT', fn('DISTINCT', col('Treino.jogadorId'))), 'quantidadeJogadores'],
                 [fn('COUNT', col('Treino.id')), 'quantidadeTreinos'],
-                [fn('SUM', col('Treino.carga')), 'cargaTotal']
+                [fn('SUM', col('Treino.carga')), 'cargaTotal'],
+                [fn('AVG', col('Treino.carga')), 'cargaMediaPorSessao']
             ],
             include: [{
                 model: Jogador,
@@ -177,7 +178,8 @@ class RelatorioService {
             posicao: item.posicao,
             quantidadeJogadores: Number(item.quantidadeJogadores),
             quantidadeTreinos: Number(item.quantidadeTreinos),
-            cargaTotal: Number(Number(item.cargaTotal).toFixed(2))
+            cargaTotal: Number(Number(item.cargaTotal).toFixed(2)),
+            cargaMediaPorSessao: Number(Number(item.cargaMediaPorSessao).toFixed(2))
         })));
 
         return {

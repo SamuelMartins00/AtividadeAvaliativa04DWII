@@ -41,10 +41,16 @@ class JogadorService {
     }
 
     // Atualizar jogador
-    async atualizar(id, dados) {
+    async atualizar(id, dados, parcial = true) {
         const jogador = await this.buscarPorId(id);
 
         const { nome, posicao } = dados;
+
+        if (!parcial && (nome === undefined || posicao === undefined)) {
+            const error = new Error('Para atualizar com PUT, informe nome e posicao.');
+            error.statusCode = 400;
+            throw error;
+        }
 
         if (nome === undefined && posicao === undefined) {
             const error = new Error('Informe pelo menos um campo para atualizar.');

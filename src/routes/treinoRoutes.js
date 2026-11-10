@@ -63,11 +63,27 @@ router.post('/', treinoController.criar);
  * @swagger
  * /treinos:
  *   get:
- *     summary: Listar todos os treinos
+ *     summary: Listar treinos com filtros opcionais
+ *     description: Permite combinar filtros por jogador, tipo e período.
  *     tags: [Treinos]
+ *     parameters:
+ *       - in: query
+ *         name: jogadorId
+ *         schema: { type: integer, minimum: 1 }
+ *       - in: query
+ *         name: tipo
+ *         schema: { type: string, enum: [F, T, E] }
+ *       - in: query
+ *         name: dataInicio
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: dataFim
+ *         schema: { type: string, format: date }
  *     responses:
  *       200:
  *         description: Lista de treinos com os respectivos jogadores
+ *       400:
+ *         description: Filtros inválidos
  */
 router.get('/', treinoController.listar);
 
